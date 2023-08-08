@@ -1,0 +1,91 @@
+{
+  "name": "ts_koa_knex_docker_boilerplate",
+  "version": "1.0.0",
+  "description": "Ts Koa Knex Docker Boilerplate",
+  "main": "src/ps_server.ts",
+  "author": "Francesco Longo <france193.dev@gmail.com>",
+  "repository": "",
+  "license": "MIT",
+  "private": true,
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node",
+    "preset": "ts-jest",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.spec.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  },
+  "scripts": {
+    "prebuild": "yarn clean",
+    "build": "tsc",
+    "clean": "rimraf ./dist && mkdir dist",
+    "ps": "yarn rollback && yarn migrate && yarn seed && export NODE_ENV=development && yarn build && node dist/src/ps_server.js",
+    "das": "export NODE_ENV=development && yarn build && node dist/src/das.js",
+    "ps:production": "yarn install && export NODE_ENV=production && yarn rollback && yarn migrate && yarn seed && yarn build && node dist/src/ps_server.js",
+    "das:production": "yarn install && export NODE_ENV=production && yarn build && node dist/src/das.js",
+    "start_ps": "export NODE_ENV=development && yarn build && node dist/src/ps_server.js",
+    "nodemon_ps": "export NODE_ENV=development && yarn build && concurrently \"tsc -w\" \"nodemon dist/src/ps_server.js\"",
+    "migrate": "knex migrate:latest --knexfile src/database/knexfile.ts",
+    "rollback": "knex migrate:rollback --knexfile src/database/knexfile.ts",
+    "seed": "knex seed:run --knexfile src/database/knexfile.ts --specific=seed.ts",
+    "test": "export NODE_ENV=production && yarn build && jest --runInBand --detectOpenHandles --forceExit",
+    "test:projects": "export NODE_ENV=production && yarn build && jest tests/project.test.ts --runInBand --detectOpenHandles --forceExit",
+    "test:statistics": "export NODE_ENV=production && yarn build && jest tests/deployment_statistics.test.ts --runInBand --detectOpenHandles --forceExit",
+    "test:deployments": "export NODE_ENV=production && yarn build && jest tests/deployment.test.ts --runInBand --detectOpenHandles --forceExit",
+    "test:deployments_webhook": "export NODE_ENV=production && yarn build && jest tests/deployment_webhook.test.ts --runInBand --detectOpenHandles --forceExit",
+    "test:token": "export NODE_ENV=production && yarn build && jest tests/token.test.ts --runInBand --detectOpenHandles --forceExit",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@types/amqp-connection-manager": "^3.4.1",
+    "@types/amqplib": "^0.10.1",
+    "@types/config": "^3.3.0",
+    "@types/knex": "^0.16.1",
+    "@types/koa": "^2.13.6",
+    "@types/koa-bodyparser": "^4.3.10",
+    "@types/koa-json": "^2.0.20",
+    "@types/koa-logger": "^3.1.2",
+    "@types/koa-router": "^7.4.4",
+    "@types/node": "^20.4.1",
+    "@types/sqlite3": "^3.1.8",
+    "amqp-connection-manager": "^4.1.13",
+    "amqplib": "^0.10.3",
+    "config": "^3.3.9",
+    "knex": "^2.5.1",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.1",
+    "koa-json": "^2.0.2",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^12.0.0",
+    "pg": "^8.11.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.3",
+    "@types/supertest": "^2.0.12",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.44.0",
+    "jest": "^29.6.1",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}

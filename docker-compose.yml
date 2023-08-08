@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # PostgreSQL
+  postgresql:
+    build:
+      context: ./
+      dockerfile: ./docker/postgresql/dockerfile
+    environment:
+      POSTGRES_PASSWORD: '${PG_PASSWORD}'
+      POSTGRES_USER: '${PG_USERNAME}'
+      POSTGRES_DB: '${PG_DATABASE_NAME}'
+    image: '${IMAGE_PREFIX}/${PG_IMAGE_NAME}'
+    restart: always
+    container_name: '${PG_CONTAINER_NAME}'
+    volumes:
+      # This can be setup also on the dockerfile
+      # - "${ENTRYPOINT}:/docker-entrypoint-initdb.d/init.sql"
+      - '${PG_STORE_PATH}:/var/lib/postgresql/data/'
+    ports:
+      - '${PG_HOST}:${PG_PORT}:5432'
+    networks:
+      - my_network
+
+  # RabbitMQ
+  rabbitmq:
+    restart: always
+    image: 'rabbitmq:3.9-management'
+    container_name: '${RABBIT_CONTAINER_NAME}'
+    environment:
+      - 'RABBITMQ_DEFAULT_USER=${RABBIT_USERNAME}'
+      - 'RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}'
+      - 'RABBITMQ_DEFAULT_VHOST=${RABBIT_VHOST}'
+    ports:
+      - '${RABBIT_HOST}:${RABBIT_PORT_AMQP}:5672'
+      - '${RABBIT_HOST}:${RABBIT_PORT_HTTP}:15672'
+    volumes:
+      - '${RABBIT_STORE_PATH}/data/:/var/lib/rabbitmq/'
+      - '${RABBIT_STORE_PATH}/log/:/var/log/rabbitmq/'
+    networks:
+      - my_network
+
+  # Public Service
+  public_service:
+    restart: always
+    build:
+      context: './'
+      dockerfile: ./docker/public_service/dockerfile
+    image: '${IMAGE_PREFIX}/${PS_IMAGE_NAME}'
+    container_name: '${PS_CONTAINER_NAME}'
+    command: 'yarn ps'
+    ports:
+      - '${PS_HOST}:${PS_PORT}:${PS_PORT}'
+    networks:
+      - my_network
+    depends_on:
+      - postgresql
+      - rabbitmq
+
+  # Data Aggregation Service
+  data_aggregation_service:
+    restart: always
+    build:
+      context: './'
+      dockerfile: ./docker/data_aggregation_service/dockerfile
+    image: '${IMAGE_PREFIX}/${DAS_IMAGE_NAME}'
+    container_name: '${DAS_CONTAINER_NAME}'
+    command: 'yarn das'
+    networks:
+      - my_network
+    depends_on:
+      - postgresql
+      - rabbitmq
+
+networks:
+  my_network:
+    driver: bridge
